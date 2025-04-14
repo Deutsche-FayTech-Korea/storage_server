@@ -42,14 +42,52 @@
 <br>
 
 <label for="jsonData">JSON 데이터:</label>
-<textarea id="jsonData" placeholder='{"userId": "user123", "createdAt": 1680000000000, "objects": [...]}'>
-  </textarea>
+<textarea id="jsonData"></textarea>
 
 <br>
 <button onclick="sendData()">해당 정보 저장</button>
 <div class="status" id="status"></div>
 
 <script>
+    window.onload = () => {
+        const defaultJson = {
+            createdBy: "user123",
+            createdAt: 1680000000000,
+            objects: [
+                {
+                    id: "uuid",
+                    objectType: "rect",
+                    style: {
+                        borderColor: "#333",
+                        fillColor: "#eee",
+                        borderWidth: 2
+                    },
+                    position: {
+                        x: 100,
+                        y: 100,
+                        width: 200,
+                        height: 100
+                    }
+                },
+                {
+                    id: "uuid",
+                    objectType: "line",
+                    createdBy: "user123",
+                    createdAt: 1680000000000,
+                    style: {
+                        color: "#000000",
+                        size: 4
+                    },
+                    points: [
+                        { x: 100, y: 200 },
+                        { x: 110, y: 210 }
+                    ]
+                }
+            ]
+        };
+        document.getElementById('jsonData').value = JSON.stringify(defaultJson, null, 2);
+    };
+
     async function sendData() {
         const method = document.getElementById('method').value;
         const status = document.getElementById('status');
