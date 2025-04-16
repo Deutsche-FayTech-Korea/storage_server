@@ -14,7 +14,8 @@ public class PageDocument {
     @Id
     private String id;
 
-    private String createdBy;
-    private long createdAt;
+    private List<String> userNames;
+    private String roomId;
+    private String roomName;
     private List<WhiteboardObject> objects;
 }

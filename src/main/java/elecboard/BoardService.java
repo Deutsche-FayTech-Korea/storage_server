@@ -15,9 +15,10 @@ public class BoardService {
     public PageDocument savePage(Page page){
 
         PageDocument doc = new PageDocument();
-        doc.setCreatedAt(page.getCreatedAt());
+        doc.setUserNames(page.getUserNames());
+        doc.setRoomId(page.getRoomId());
+        doc.setRoomName(page.getRoomName());
         doc.setObjects(page.getObjects());
-        doc.setCreatedBy(page.getCreatedBy());
 
         return boardRepository.save(doc);
     }

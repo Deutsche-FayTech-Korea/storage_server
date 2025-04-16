@@ -13,8 +13,6 @@ public class BoardMetaService {
 
     public Long save(PageDocument saved){
         BoardMeta meta = new BoardMeta();
-        meta.setCreatedBy(saved.getCreatedBy());
-        meta.setCreatedAt(saved.getCreatedAt());
         meta.setDrawingKey(saved.getId());
         boardMetaRepository.save(meta);
 

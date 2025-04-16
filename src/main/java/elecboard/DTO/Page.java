@@ -12,7 +12,8 @@ import java.util.List;
 @Data
 public class Page {
 
-    private String createdBy;
-    private long createdAt;
+    private List<String> userNames;
+    private String roomId;
+    private String roomName;
     private List<WhiteboardObject> objects;
 }
