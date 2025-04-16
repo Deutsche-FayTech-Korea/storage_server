@@ -30,7 +30,7 @@ public class S3Service {
         metadata.setContentType(file.getContentType());
 
         try (InputStream inputStream = file.getInputStream()) {
-            amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata)
+            amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata));
         } catch (IOException e) {
             throw new RuntimeException("파일 업로드 실패", e);
         }
