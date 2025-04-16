@@ -14,13 +14,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;
-    private final BoardMetaService boardMetaService;
 
-    @PostMapping("/api/save")
+    @PostMapping("/save/{roomId}")
     public ResponseEntity<String> savePage(@RequestBody Page page){
-        PageDocument saved = boardService.savePage(page);
-        boardMetaService.save(saved);
-        log.info("saved");
+        boardService.savePage(page);
+        //log.info("saved");
         return ResponseEntity.ok("Saved to MongoDB");
     }
 
@@ -32,8 +30,6 @@ public class BoardController {
         return boardService.findPageById(id)
                 .map(doc -> {
                     Page page = new Page();
-                    page.setCreatedAt(doc.getCreatedAt());
-                    page.setCreatedBy(doc.getCreatedBy());
                     page.setObjects(doc.getObjects());
                     return page;
                 })

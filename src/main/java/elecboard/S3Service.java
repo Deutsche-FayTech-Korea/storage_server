@@ -31,7 +31,6 @@ public class S3Service {
 
         try (InputStream inputStream = file.getInputStream()) {
             amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, metadata)
-                    .withCannedAcl(CannedAccessControlList.PublicRead)); // 공개 읽기 권한 설정, 공개접근 막으려면 빼야댐
         } catch (IOException e) {
             throw new RuntimeException("파일 업로드 실패", e);
         }

@@ -20,5 +20,4 @@ public abstract class WhiteboardObject {
     private String id;
     //private String objectType; -> 12번 줄에서 정의해줌
     private String createdBy;
-    private long createdAt;
 }
