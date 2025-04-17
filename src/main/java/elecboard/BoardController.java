@@ -15,27 +15,15 @@ import org.springframework.web.bind.annotation.*;
 public class BoardController {
     private final BoardService boardService;
 
-    @PostMapping("/save/{roomId}")
-    public ResponseEntity<String> savePage(@RequestBody Page page){
-        boardService.savePage(page);
-        //log.info("saved");
-        return ResponseEntity.ok("Saved to MongoDB");
-    }
+//    @PostMapping("/save/{roomId}")
+//    public ResponseEntity<String> savePage(@RequestBody Page page){
+//        boardService.savePage(page);
+//        return ResponseEntity.ok("Saved successfully");
+//    }
 
-    //page를 찾은 경우 PageDocument값을 Page에 담아서 외부에 전송
-    //찾았다면 200ok, 아니라면 notFound
-    @GetMapping("/api/{id}")
-    public ResponseEntity<Page> getPage(@PathVariable String id, Pageable pageable){
-
-        return boardService.findPageById(id)
-                .map(doc -> {
-                    Page page = new Page();
-                    page.setObjects(doc.getObjects());
-                    return page;
-                })
-                .map(page-> {
-                    return ResponseEntity.ok(page);
-                })
-                .orElse(ResponseEntity.notFound().build());
+    @PostMapping("/save")
+    public ResponseEntity<String> savePage(@RequestBody Page page) {
+        PageDocument saved = boardService.saveOrUpdatePage(page);
+        return ResponseEntity.ok("Saved successfully");
     }
 }
