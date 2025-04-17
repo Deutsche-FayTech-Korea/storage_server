@@ -37,4 +37,27 @@ public class S3Service {
 
         return amazonS3.getUrl(bucket, fileName).toString(); // 업로드된 파일의 S3 URL 반환
     }
+
+    public void deleteByUrl(String url) {
+        try {
+            String key = extractKeyFromUrl(url);
+            amazonS3.deleteObject(bucket, key);
+            System.out.println("✅ S3에서 삭제 완료: " + key);
+        } catch (Exception e) {
+            System.err.println("❌ S3 삭제 중 오류 발생: " + e.getMessage());
+        }
+    }
+
+    /**
+     * S3 URL에서 오브젝트 키 추출
+     * 예: https://your-bucket.s3.amazonaws.com/folder/image.png → folder/image.png
+     */
+    private String extractKeyFromUrl(String url) {
+        String bucketUrlPrefix = "https://" + bucket + ".s3.amazonaws.com/";
+        if (url.startsWith(bucketUrlPrefix)) {
+            return url.substring(bucketUrlPrefix.length());
+        } else {
+            throw new IllegalArgumentException("URL이 예상 형식과 다릅니다: " + url);
+        }
+    }
 }
