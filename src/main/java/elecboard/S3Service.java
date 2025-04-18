@@ -42,9 +42,9 @@ public class S3Service {
         try {
             String key = extractKeyFromUrl(url);
             amazonS3.deleteObject(bucket, key);
-            System.out.println("✅ S3에서 삭제 완료: " + key);
+            System.out.println("S3에서 삭제 완료: " + key);
         } catch (Exception e) {
-            System.err.println("❌ S3 삭제 중 오류 발생: " + e.getMessage());
+            System.err.println("S3 삭제 중 오류 발생: " + e.getMessage());
         }
     }
 
@@ -53,7 +53,7 @@ public class S3Service {
      * 예: https://your-bucket.s3.amazonaws.com/folder/image.png → folder/image.png
      */
     private String extractKeyFromUrl(String url) {
-        String bucketUrlPrefix = "https://" + bucket + ".s3.amazonaws.com/";
+        String bucketUrlPrefix = "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/";
         if (url.startsWith(bucketUrlPrefix)) {
             return url.substring(bucketUrlPrefix.length());
         } else {
