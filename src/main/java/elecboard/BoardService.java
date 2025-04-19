@@ -1,6 +1,7 @@
 package elecboard;
 
 import elecboard.DTO.Sub.Payload;
+import elecboard.DTO.Dashboard;
 import elecboard.DTO.WhiteboardObjects.ImageObject;
 import elecboard.DTO.WhiteboardObjects.WhiteboardObject;
 import lombok.RequiredArgsConstructor;
@@ -64,10 +65,16 @@ public class BoardService {
         added.removeAll(oldUrls);
 
         if (!removed.isEmpty()) {
-            System.out.println("삭제된 이미지: " + removed);
             for (String url : removed) {
                 s3Service.deleteByUrl(url);  // 예: S3에서 url로 삭제
             }
         }
+    }
+
+    public List<Dashboard> getBoardsByUser(String userName) {
+        List<PageDocument> pages = boardRepository.findByUserNamesContaining(userName);
+        return pages.stream()
+                .map(p -> new Dashboard(p.getRoomId(), p.getRoomName(), p.getUserNames()))
+                .collect(Collectors.toList());
     }
 }
