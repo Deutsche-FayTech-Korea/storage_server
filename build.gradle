@@ -26,7 +26,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	//S3설정부분
 	implementation platform('com.amazonaws:aws-java-sdk-bom:1.12.529')
 	implementation 'com.amazonaws:aws-java-sdk-s3' //AmazonS3 클래스
