@@ -102,6 +102,23 @@ public class BoardService {
         if (pageOpt.isEmpty()) {
             return false;
         }
+        // 삭제 전 이미지 URL 추출
+        PageDocument page = pageOpt.get();
+        List<WhiteboardObject> objects = page.getObjects();
+        if (objects != null) {
+            List<String> imageUrls = objects.stream()
+                    .filter(obj -> obj instanceof ImageObject)
+                    .map(obj -> ((ImageObject) obj).getPayload())
+                    .filter(Objects::nonNull)
+                    .map(Payload::getSrc)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            // S3에서 이미지 삭제
+            for (String url : imageUrls) {
+                s3Service.deleteByUrl(url);
+            }
+        }
 
         boardRepository.deleteByRoomIdAndUserNamesContaining(roomId, userName);
         return true;
