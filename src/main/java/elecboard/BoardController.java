@@ -41,9 +41,109 @@ public class BoardController {
         return ResponseEntity.ok("Saved successfully");
     }
 
-    @GetMapping("/page/{userName}")
-    public ResponseEntity<List<Dashboard>> getBoardsByUser(@PathVariable String userName) {
+    @GetMapping("/page")
+    public ResponseEntity<?> getBoardsByUser(
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or malformed Authorization header");
+        }
+        String token = authHeader.substring(7);
+
+        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+        if (userOpt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+
+        //토큰에서 유저 이름 추출
+        String userName = userOpt.get().getName();
         List<Dashboard> result = boardService.getBoardsByUser(userName);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/page/{roomId}")
+    public ResponseEntity<?> getPage(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String roomId
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Missing or malformed Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid token");
+        }
+
+        String userName = userOpt.get().getName();
+
+        Optional<Page> pageOpt = boardService.getPageByRoomId(roomId, userName);
+        if (pageOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You do not have access to this page");
+        }
+
+        return ResponseEntity.ok(pageOpt.get());
+    }
+
+//    @GetMapping("/page/{userName}/{roomId}")
+//    public ResponseEntity<?> getPage(
+//            @PathVariable String userName,
+//            @PathVariable String roomId
+//    ) {
+//        Optional<Page> pageOpt = boardService.getPageByRoomId(roomId, userName);
+//        if (pageOpt.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                    .body("You do not have access to this page");
+//        }
+//
+//        return ResponseEntity.ok(pageOpt.get());
+//    }
+
+    @DeleteMapping("/page/{roomId}")
+    public ResponseEntity<?> deletePage(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String roomId
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Missing or malformed Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid token");
+        }
+
+        String userName = userOpt.get().getName();
+
+        boolean deleted = boardService.deletePageByRoomId(roomId, userName);
+        if (!deleted) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You do not have permission or page does not exist.");
+        }
+
+        return ResponseEntity.ok("Deleted successfully");
+    }
+
+//    @DeleteMapping("/page/{userName}/{roomId}")
+//    public ResponseEntity<?> deletePage(
+//            @PathVariable String userName,
+//            @PathVariable String roomId
+//    ) {
+//
+//
+//        boolean deleted = boardService.deletePageByRoomId(roomId, userName);
+//        if (!deleted) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                    .body("You do not have permission or page does not exist.");
+//        }
+//
+//        return ResponseEntity.ok("Deleted successfully");
+//    }
 }

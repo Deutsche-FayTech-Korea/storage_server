@@ -35,6 +35,7 @@ public class BoardService {
             doc = new PageDocument();
         }
         doc.setRoomId(page.getRoomId());
+        doc.setCreatedBy(page.getCreatedBy());
         doc.setRoomName(page.getRoomName());
         doc.setUserNames(page.getUserNames());
         doc.setObjects(page.getObjects());
@@ -76,5 +77,33 @@ public class BoardService {
         return pages.stream()
                 .map(p -> new Dashboard(p.getRoomId(), p.getRoomName(), p.getUserNames()))
                 .collect(Collectors.toList());
+    }
+
+    public Optional<Page> getPageByRoomId(String roomId, String userName) {
+        Optional<PageDocument> doc = boardRepository.findByRoomIdAndUserNamesContaining(roomId, userName);
+        if (doc.isEmpty()) return Optional.empty();
+
+        Page page = new Page();
+        page.setRoomId(doc.get().getRoomId());
+        page.setRoomName(doc.get().getRoomName());
+        page.setUserNames(doc.get().getUserNames());
+        page.setCreatedBy(doc.get().getCreatedBy());
+        page.setObjects(doc.get().getObjects());
+        return Optional.of(page);
+    }
+
+    public boolean deletePageByRoomId(String roomId, String userName) {
+        Optional<PageDocument> pageOpt = boardRepository.findByRoomIdAndUserNamesContaining(roomId, userName);
+
+        //방장만 삭제할 수 있도록 하고싶은 경우
+//        if (!pageOpt.get().getCreatedBy().equals(userName)) {
+//            return false;
+//        }
+        if (pageOpt.isEmpty()) {
+            return false;
+        }
+
+        boardRepository.deleteByRoomIdAndUserNamesContaining(roomId, userName);
+        return true;
     }
 }
