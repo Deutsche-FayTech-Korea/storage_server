@@ -17,7 +17,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
         @JsonSubTypes.Type(value = ImageObject.class, name = "image"),
 })
 public abstract class WhiteboardObject {
-    private String id;
     //private String objectType; -> 12번 줄에서 정의해줌
     private String createdBy;
 }
