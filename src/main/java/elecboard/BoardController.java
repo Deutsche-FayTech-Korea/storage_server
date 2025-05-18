@@ -32,8 +32,9 @@ public class BoardController {
         String token = authHeader.substring(7); // "Bearer " 제거 (공백 포함해서 7글자)
 
         //토큰이 유효하지 않을 수도 있음
+        //Optional<UserInfo> userOpt = authClient.getUserInfo(token);
         Optional<UserInfo> userOpt = authClient.getUserInfo(token);
-        if (userOpt == null) {
+        if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
@@ -45,13 +46,19 @@ public class BoardController {
     public ResponseEntity<?> getBoardsByUser(
             @RequestHeader("Authorization") String authHeader
     ) {
+        //
+        log.info("요청 들어온 Authorization 헤더: {}", authHeader);
+        //
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or malformed Authorization header");
         }
         String token = authHeader.substring(7);
+        //
+        log.info("파싱된 토큰: {}", token);
+        //
 
         Optional<UserInfo> userOpt = authClient.getUserInfo(token);
-        if (userOpt == null) {
+        if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 

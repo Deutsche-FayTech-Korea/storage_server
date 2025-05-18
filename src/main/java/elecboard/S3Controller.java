@@ -22,22 +22,22 @@ public class S3Controller {
     private final S3Service s3Service;
     private final AuthClient authClient;
 
-    @PostMapping("/uploadImage")
-    public ResponseEntity<String> saveFile(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestParam("fileName") MultipartFile file
-    ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or malformed Authorization header");
-        }
-        String token = authHeader.substring(7); // "Bearer " 제거 (공백 포함해서 7글자)
-
-        //토큰이 유효하지 않을 수도 있음
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
-        if (userOpt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-        }
-        String url = s3Service.uploadFile(file);
-        return ResponseEntity.ok("Uploaded to: " + url);
-    }
+//    @PostMapping("/uploadImage")
+//    public ResponseEntity<String> saveFile(
+//            @RequestHeader("Authorization") String authHeader,
+//            @RequestParam("fileName") MultipartFile file
+//    ) {
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or malformed Authorization header");
+//        }
+//        String token = authHeader.substring(7); // "Bearer " 제거 (공백 포함해서 7글자)
+//
+//        //토큰이 유효하지 않을 수도 있음
+//        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+//        if (userOpt == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+//        }
+//        String url = s3Service.uploadFile(file);
+//        return ResponseEntity.ok("Uploaded to: " + url);
+//    }
 }
