@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/board/s3/api")
 @RequiredArgsConstructor
 public class BoardController {
     private final BoardService boardService;

@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/board/s3/api")
 public class S3Controller {
 
     private final S3Service s3Service;

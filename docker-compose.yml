@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  board-spring:
+    build: .
+    ports:
+      - "3434:3434"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongtu:mongmong@www.kimtuna.kr:2222/whiteboard_db
+    restart: always
+
+networks:
+  default:
+    driver: bridge 
