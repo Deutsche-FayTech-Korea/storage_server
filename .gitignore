@@ -35,3 +35,71 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Application Properties ###
+# 프로덕션 설정 파일
+src/main/resources/application.properties
+src/main/resources/application-prod.properties
+
+# 로컬 개발 설정 파일
+src/main/resources/application-dev.properties
+src/main/resources/application-local.properties
+
+### Logs ###
+*.log
+logs/
+log/
+
+### Environment Variables ###
+.env
+.env.local
+.env.*.local
+
+### OS generated files ###
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+### Docker ###
+.docker/
+docker-compose.override.yml
+
+### Temporary files ###
+*.swp
+*.swo
+*~
+
+### Build output ###
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Test coverage ###
+.coverage
+.coverage.*
+coverage/
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+### IDE specific files ###
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
