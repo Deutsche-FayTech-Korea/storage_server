@@ -2,14 +2,17 @@ package elecboard;
 
 import elecboard.DTO.Auth.UserInfo;
 import elecboard.DTO.Dashboard;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import elecboard.DTO.Page;
 import elecboard.DTO.PageDocument;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,136 +24,177 @@ public class BoardController {
     private final BoardService boardService;
     private final AuthClient authClient;
 
+    // 공통: 쿠키에서 token 추출
+    private String extractTokenFromCookie(String cookieHeader, String tokenName) {
+        if (cookieHeader == null) return null;
+
+        for (String cookie : cookieHeader.split(";")) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(tokenName + "=")) {
+                return cookie.substring((tokenName + "=").length());
+            }
+        }
+
+        return null;
+    }
+
     @PostMapping("/save")
     public ResponseEntity<String> savePage(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader("Cookie") String cookieHeader,
             @RequestBody Page page
     ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or malformed Authorization header");
-        }
-        String token = authHeader.substring(7); // "Bearer " 제거 (공백 포함해서 7글자)
+        String accessToken = extractTokenFromCookie(cookieHeader, "access_token");
+        String refreshToken = extractTokenFromCookie(cookieHeader, "refresh_token");
 
-        //토큰이 유효하지 않을 수도 있음
-        //Optional<UserInfo> userOpt = authClient.getUserInfo(token);
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing access token in cookies");
+        }
+
+        Optional<UserInfo> userOpt = authClient.getUserInfo(accessToken);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        PageDocument saved = boardService.saveOrUpdatePage(page);
-        return ResponseEntity.ok("Saved successfully");
+        boardService.saveOrUpdatePage(page);
+
+        // 응답 시 access_token과 refresh_token 다시 세팅
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken != null ? refreshToken : "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString(), accessCookie.toString())
+                .body("Saved successfully");
     }
 
     @GetMapping("/page")
-    public ResponseEntity<?> getBoardsByUser(
-            @RequestHeader("Authorization") String authHeader
-    ) {
-        //
-        log.info("요청 들어온 Authorization 헤더: {}", authHeader);
-        //
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or malformed Authorization header");
-        }
-        String token = authHeader.substring(7);
-        //
-        log.info("파싱된 토큰: {}", token);
-        //
+    public ResponseEntity<?> getBoardsByUser(@RequestHeader("Cookie") String cookieHeader) {
+        String accessToken = extractTokenFromCookie(cookieHeader, "access_token");
+        String refreshToken = extractTokenFromCookie(cookieHeader, "refresh_token");
 
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing access token in cookies");
+        }
+
+        Optional<UserInfo> userOpt = authClient.getUserInfo(accessToken);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        //토큰에서 유저 이름 추출
         String userName = userOpt.get().getName();
         List<Dashboard> result = boardService.getBoardsByUser(userName);
-        return ResponseEntity.ok(result);
+
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken != null ? refreshToken : "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString(), accessCookie.toString())
+                .body(result);
     }
 
     @GetMapping("/page/{roomId}")
     public ResponseEntity<?> getPage(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader("Cookie") String cookieHeader,
             @PathVariable String roomId
     ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing or malformed Authorization header");
+        String accessToken = extractTokenFromCookie(cookieHeader, "access_token");
+        String refreshToken = extractTokenFromCookie(cookieHeader, "refresh_token");
+
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing access token in cookies");
         }
 
-        String token = authHeader.substring(7);
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+        Optional<UserInfo> userOpt = authClient.getUserInfo(accessToken);
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
         String userName = userOpt.get().getName();
-
         Optional<Page> pageOpt = boardService.getPageByRoomId(roomId, userName);
         if (pageOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You do not have access to this page");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have access to this page");
         }
 
-        return ResponseEntity.ok(pageOpt.get());
-    }
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
 
-//    @GetMapping("/page/{userName}/{roomId}")
-//    public ResponseEntity<?> getPage(
-//            @PathVariable String userName,
-//            @PathVariable String roomId
-//    ) {
-//        Optional<Page> pageOpt = boardService.getPageByRoomId(roomId, userName);
-//        if (pageOpt.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                    .body("You do not have access to this page");
-//        }
-//
-//        return ResponseEntity.ok(pageOpt.get());
-//    }
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken != null ? refreshToken : "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString(), accessCookie.toString())
+                .body(pageOpt.get());
+    }
 
     @DeleteMapping("/page/{roomId}")
     public ResponseEntity<?> deletePage(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader("Cookie") String cookieHeader,
             @PathVariable String roomId
     ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing or malformed Authorization header");
+        String accessToken = extractTokenFromCookie(cookieHeader, "access_token");
+        String refreshToken = extractTokenFromCookie(cookieHeader, "refresh_token");
+
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing access token in cookies");
         }
 
-        String token = authHeader.substring(7);
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+        Optional<UserInfo> userOpt = authClient.getUserInfo(accessToken);
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
         String userName = userOpt.get().getName();
-
         boolean deleted = boardService.deletePageByRoomId(roomId, userName);
         if (!deleted) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You do not have permission or page does not exist.");
         }
 
-        return ResponseEntity.ok("Deleted successfully");
-    }
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
 
-//    @DeleteMapping("/page/{userName}/{roomId}")
-//    public ResponseEntity<?> deletePage(
-//            @PathVariable String userName,
-//            @PathVariable String roomId
-//    ) {
-//
-//
-//        boolean deleted = boardService.deletePageByRoomId(roomId, userName);
-//        if (!deleted) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                    .body("You do not have permission or page does not exist.");
-//        }
-//
-//        return ResponseEntity.ok("Deleted successfully");
-//    }
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken != null ? refreshToken : "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString(), accessCookie.toString())
+                .body("Deleted successfully");
+    }
 }
