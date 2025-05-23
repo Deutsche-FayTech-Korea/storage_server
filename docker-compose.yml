@@ -4,9 +4,25 @@ services:
   board-spring:
     build: .
     ports:
-      - "3434:3434"
+      - "${SPRING_PORT:-3434}:${SPRING_PORT:-3434}"
     environment:
+      # Spring 설정
+      - SPRING_PORT=${SPRING_PORT:-3434}
+      - SPRING_APP_NAME=${SPRING_APP_NAME:-mongoTest}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-20MB}
+      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-20MB}
+      - AUTO_CONFIGURE_EXCLUDE=${AUTO_CONFIGURE_EXCLUDE}
+      
+      # MongoDB 설정
       - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DATABASE=${MONGODB_DATABASE:-whiteboard_db}
+      
+      # AWS 설정
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_STACK_AUTO=${AWS_STACK_AUTO:-false}
     restart: always
 
 networks:
