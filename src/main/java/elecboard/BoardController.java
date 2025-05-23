@@ -2,14 +2,17 @@ package elecboard;
 
 import elecboard.DTO.Auth.UserInfo;
 import elecboard.DTO.Dashboard;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import elecboard.DTO.Page;
 import elecboard.DTO.PageDocument;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,136 +24,102 @@ public class BoardController {
     private final BoardService boardService;
     private final AuthClient authClient;
 
+    // === 공통 메서드 ===
+
+    private String extractTokenFromCookie(String cookieHeader, String tokenName) {
+        if (cookieHeader == null) return null;
+        for (String cookie : cookieHeader.split(";")) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(tokenName + "=")) {
+                return cookie.substring((tokenName + "=").length());
+            }
+        }
+        return null;
+    }
+
+    private Optional<UserInfo> validateTokenAndGetUser(String cookieHeader) {
+        String accessToken = extractTokenFromCookie(cookieHeader, "access_token");
+        if (accessToken == null) return Optional.empty();
+        return authClient.getUserInfo(accessToken);
+    }
+
+
+    // === API 구현 ===
+
     @PostMapping("/save")
     public ResponseEntity<String> savePage(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader("Cookie") String cookieHeader,
             @RequestBody Page page
     ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or malformed Authorization header");
-        }
-        String token = authHeader.substring(7); // "Bearer " 제거 (공백 포함해서 7글자)
 
-        //토큰이 유효하지 않을 수도 있음
-        //Optional<UserInfo> userOpt = authClient.getUserInfo(token);
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+        Optional<UserInfo> userOpt = validateTokenAndGetUser(cookieHeader);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        PageDocument saved = boardService.saveOrUpdatePage(page);
-        return ResponseEntity.ok("Saved successfully");
+        boardService.saveOrUpdatePage(page);
+        return ResponseEntity.ok()
+                .body("Saved successfully");
     }
 
     @GetMapping("/page")
-    public ResponseEntity<?> getBoardsByUser(
-            @RequestHeader("Authorization") String authHeader
-    ) {
-        //
-        log.info("요청 들어온 Authorization 헤더: {}", authHeader);
-        //
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or malformed Authorization header");
-        }
-        String token = authHeader.substring(7);
-        //
-        log.info("파싱된 토큰: {}", token);
-        //
+    public ResponseEntity<?> getBoardsByUser(@RequestHeader("Cookie") String cookieHeader) {
 
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+
+        Optional<UserInfo> userOpt = validateTokenAndGetUser(cookieHeader);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        //토큰에서 유저 이름 추출
         String userName = userOpt.get().getName();
         List<Dashboard> result = boardService.getBoardsByUser(userName);
-        return ResponseEntity.ok(result);
+
+        return ResponseEntity.ok()
+                .body(result);
     }
 
     @GetMapping("/page/{roomId}")
     public ResponseEntity<?> getPage(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader("Cookie") String cookieHeader,
             @PathVariable String roomId
     ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing or malformed Authorization header");
-        }
 
-        String token = authHeader.substring(7);
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+
+        Optional<UserInfo> userOpt = validateTokenAndGetUser(cookieHeader);
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
         String userName = userOpt.get().getName();
-
         Optional<Page> pageOpt = boardService.getPageByRoomId(roomId, userName);
         if (pageOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You do not have access to this page");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have access to this page");
         }
 
-        return ResponseEntity.ok(pageOpt.get());
+        return ResponseEntity.ok()
+                .body(pageOpt.get());
     }
-
-//    @GetMapping("/page/{userName}/{roomId}")
-//    public ResponseEntity<?> getPage(
-//            @PathVariable String userName,
-//            @PathVariable String roomId
-//    ) {
-//        Optional<Page> pageOpt = boardService.getPageByRoomId(roomId, userName);
-//        if (pageOpt.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                    .body("You do not have access to this page");
-//        }
-//
-//        return ResponseEntity.ok(pageOpt.get());
-//    }
 
     @DeleteMapping("/page/{roomId}")
     public ResponseEntity<?> deletePage(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader("Cookie") String cookieHeader,
             @PathVariable String roomId
     ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing or malformed Authorization header");
-        }
 
-        String token = authHeader.substring(7);
-        Optional<UserInfo> userOpt = authClient.getUserInfo(token);
+
+        Optional<UserInfo> userOpt = validateTokenAndGetUser(cookieHeader);
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
         String userName = userOpt.get().getName();
-
         boolean deleted = boardService.deletePageByRoomId(roomId, userName);
         if (!deleted) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You do not have permission or page does not exist.");
         }
 
-        return ResponseEntity.ok("Deleted successfully");
+        return ResponseEntity.ok()
+                .body("Deleted successfully");
     }
-
-//    @DeleteMapping("/page/{userName}/{roomId}")
-//    public ResponseEntity<?> deletePage(
-//            @PathVariable String userName,
-//            @PathVariable String roomId
-//    ) {
-//
-//
-//        boolean deleted = boardService.deletePageByRoomId(roomId, userName);
-//        if (!deleted) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                    .body("You do not have permission or page does not exist.");
-//        }
-//
-//        return ResponseEntity.ok("Deleted successfully");
-//    }
 }
