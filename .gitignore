@@ -36,11 +36,6 @@ out/
 ### VS Code ###
 .vscode/
 
-### Application Properties ###
-# 프로덕션 설정 파일
-src/main/resources/application.properties
-src/main/resources/application-prod.properties
-
 # 로컬 개발 설정 파일
 src/main/resources/application-dev.properties
 src/main/resources/application-local.properties
