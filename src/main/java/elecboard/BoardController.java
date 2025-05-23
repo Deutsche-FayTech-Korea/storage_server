@@ -51,15 +51,27 @@ public class BoardController {
             @RequestHeader("Cookie") String cookieHeader,
             @RequestBody Page page
     ) {
+        log.info("=== Save Page Request ===");
+        log.info("Cookie Header: {}", cookieHeader);
+        log.info("Request Body: {}", page);
+        log.info("Request Method: POST");
+        log.info("Request URL: /board/s3/api/save");
 
         Optional<UserInfo> userOpt = validateTokenAndGetUser(cookieHeader);
         if (userOpt.isEmpty()) {
+            log.error("Invalid token");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        boardService.saveOrUpdatePage(page);
-        return ResponseEntity.ok()
-                .body("Saved successfully");
+        try {
+            boardService.saveOrUpdatePage(page);
+            log.info("Page saved successfully");
+            return ResponseEntity.ok()
+                    .body("Saved successfully");
+        } catch (Exception e) {
+            log.error("Error saving page: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/page")
