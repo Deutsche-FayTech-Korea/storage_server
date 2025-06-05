@@ -82,7 +82,7 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        int userId = userOpt.get().getId();
+        String userId = String.valueOf(userOpt.get().getId());
         List<Dashboard> result = boardService.getBoardsByUser(userId);
 
         return ResponseEntity.ok()
@@ -101,7 +101,7 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        int userId = userOpt.get().getId();
+        String userId = String.valueOf(userOpt.get().getId());
         Optional<PageDocument> pageOpt = boardService.getPageByRoomId(roomId, userId);
         if (pageOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have access to this page");
@@ -123,7 +123,7 @@ public class BoardController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        int userId = userOpt.get().getId();
+        String userId = String.valueOf(userOpt.get().getId());
         boolean deleted = boardService.deletePageByRoomId(roomId, userId);
         if (!deleted) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

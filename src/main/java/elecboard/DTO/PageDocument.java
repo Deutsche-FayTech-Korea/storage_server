@@ -19,7 +19,7 @@ public class PageDocument {
     private String id;
 
     private List<Participant> participants;
-    private String madeBy;
+    private MadeBy madeBy;
     private String createdAt;
     private String roomId;
     private String roomName;

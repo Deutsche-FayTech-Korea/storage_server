@@ -78,15 +78,15 @@ public class BoardService {
         }
     }
 
-    public List<Dashboard> getBoardsByUser(int userId) {
-        List<PageDocument> pages = boardRepository.findByParticipants_Id(userId);
+    public List<Dashboard> getBoardsByUser(String userId) {
+        List<PageDocument> pages = boardRepository.findByParticipants_UserId(userId);
         return pages.stream()
                 .map(p -> new Dashboard(p.getRoomId(), p.getRoomName(), p.getCreatedAt(),p.getParticipants()))
                 .collect(Collectors.toList());
     }
 
-    public Optional<PageDocument> getPageByRoomId(String roomId, int userId) {
-        Optional<PageDocument> doc = boardRepository.findByRoomIdAndParticipants_Id(roomId, userId);
+    public Optional<PageDocument> getPageByRoomId(String roomId, String userId) {
+        Optional<PageDocument> doc = boardRepository.findByRoomIdAndParticipants_UserId(roomId, userId);
         if (doc.isEmpty()) return Optional.empty();
 
         PageDocument page = new PageDocument();
@@ -101,8 +101,8 @@ public class BoardService {
         return Optional.of(page);
     }
 
-    public boolean deletePageByRoomId(String roomId, int userId) {
-        Optional<PageDocument> pageOpt = boardRepository.findByRoomIdAndParticipants_Id(roomId, userId);
+    public boolean deletePageByRoomId(String roomId, String userId) {
+        Optional<PageDocument> pageOpt = boardRepository.findByRoomIdAndParticipants_UserId(roomId, userId);
 
         //방장만 삭제할 수 있도록 하고싶은 경우
 //        if (!pageOpt.get().getCreatedBy().equals(userName)) {
@@ -129,7 +129,7 @@ public class BoardService {
             }
         }
 
-        boardRepository.deleteByRoomIdAndParticipants_Id(roomId, userId);
+        boardRepository.deleteByRoomIdAndParticipants_UserId(roomId, userId);
         return true;
     }
 }

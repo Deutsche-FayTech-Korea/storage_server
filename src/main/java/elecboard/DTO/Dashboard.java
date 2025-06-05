@@ -13,5 +13,5 @@ public class Dashboard {
     private String roomId;
     private String roomName;
     private String createdAt;
-    private List<Participant> userNames;
+    private List<Participant> participants;
 }

@@ -4,13 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Participant {
-    String userId;
-    String userName;
-    private LocalDateTime joinedAt;
+public class MadeBy {
+    String id;
+    String name;
 }

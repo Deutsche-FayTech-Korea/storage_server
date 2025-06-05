@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface BoardRepository extends MongoRepository<PageDocument,String> {
 
-    List<PageDocument> findByParticipants_Id(int id);
+    List<PageDocument> findByParticipants_UserId(String id);
 
     PageDocument findByRoomId(String roomId);
 
-    Optional<PageDocument> findByRoomIdAndParticipants_Id(String roomId, int userId);
+    Optional<PageDocument> findByRoomIdAndParticipants_UserId(String roomId, String userId);
 
-    void deleteByRoomIdAndParticipants_Id(String roomId, int userId);
+    void deleteByRoomIdAndParticipants_UserId(String roomId, String userId);
 }
