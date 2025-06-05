@@ -1,9 +1,10 @@
 package elecboard.DTO;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.Id;
+
 import lombok.Data;
 import elecboard.DTO.WhiteboardObjects.WhiteboardObject;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.sql.Timestamp;
