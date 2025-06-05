@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 //db에 넣을 때 꺼낼 때 사용, 외부와 통신할 때는 직접적으로 사용x(Page에 담아서 전달)
@@ -20,7 +21,7 @@ public class PageDocument {
 
     private List<Participant> participants;
     private MadeBy madeBy;
-    private String createdAt;
+    private LocalDateTime createdAt;
     private String roomId;
     private String roomName;
     private String mode;

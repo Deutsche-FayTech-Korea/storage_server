@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -12,6 +13,8 @@ import java.util.List;
 public class Dashboard {
     private String roomId;
     private String roomName;
-    private String createdAt;
+    private String mode;
+    private MadeBy madeBy;
+    private LocalDateTime createdAt;
     private List<Participant> participants;
 }

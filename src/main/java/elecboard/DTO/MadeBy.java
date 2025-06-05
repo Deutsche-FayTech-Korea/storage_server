@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MadeBy {
-    String id;
-    String name;
+    String userId;
+    String username;
 }
