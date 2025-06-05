@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 //db에 넣을 때 꺼낼 때 사용, 외부와 통신할 때는 직접적으로 사용x(Page에 담아서 전달)
-@Document(collection = "whiteboard_pages")
+@Document(collection = "whiteboard_rooms")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 public class PageDocument {
