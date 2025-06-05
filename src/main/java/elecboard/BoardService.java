@@ -5,7 +5,6 @@ import elecboard.DTO.Dashboard;
 import elecboard.DTO.WhiteboardObjects.ImageObject;
 import elecboard.DTO.WhiteboardObjects.WhiteboardObject;
 import lombok.RequiredArgsConstructor;
-import elecboard.DTO.Page;
 import elecboard.DTO.PageDocument;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final S3Service s3Service;
 
-    public PageDocument saveOrUpdatePage(Page page) {
+    public PageDocument saveOrUpdatePage(PageDocument page) {
         PageDocument existing = boardRepository.findByRoomId(page.getRoomId());
 
         //기존 roomId가 존재하면 업데이트, 아니면 새롭게 저장
@@ -35,10 +34,17 @@ public class BoardService {
             doc = new PageDocument();
         }
         doc.setRoomId(page.getRoomId());
-        doc.setCreatedBy(page.getCreatedBy());
+        doc.setMadeBy(page.getMadeBy());
         doc.setRoomName(page.getRoomName());
-        doc.setUserNames(page.getUserNames());
-        doc.setObjects(page.getObjects());
+        doc.setParticipants(page.getParticipants());
+        doc.setCreatedAt(page.getCreatedAt());
+        doc.setMode(page.getMode());
+        if(page.getObjects() == null){
+            List<WhiteboardObject> emptyList = new ArrayList<>();
+            doc.setObjects(emptyList);
+        }else{
+            doc.setObjects(page.getObjects());
+        }
 
         return boardRepository.save(doc); // 저장 or 업데이트
     }
@@ -72,28 +78,31 @@ public class BoardService {
         }
     }
 
-    public List<Dashboard> getBoardsByUser(String userName) {
-        List<PageDocument> pages = boardRepository.findByUserNamesContaining(userName);
+    public List<Dashboard> getBoardsByUser(int userId) {
+        List<PageDocument> pages = boardRepository.findByParticipants_Id(userId);
         return pages.stream()
-                .map(p -> new Dashboard(p.getRoomId(), p.getRoomName(), p.getUserNames()))
+                .map(p -> new Dashboard(p.getRoomId(), p.getRoomName(), p.getParticipants()))
                 .collect(Collectors.toList());
     }
 
-    public Optional<Page> getPageByRoomId(String roomId, String userName) {
-        Optional<PageDocument> doc = boardRepository.findByRoomIdAndUserNamesContaining(roomId, userName);
+    public Optional<PageDocument> getPageByRoomId(String roomId, int userId) {
+        Optional<PageDocument> doc = boardRepository.findByRoomIdAndParticipants_Id(roomId, userId);
         if (doc.isEmpty()) return Optional.empty();
 
-        Page page = new Page();
+        PageDocument page = new PageDocument();
         page.setRoomId(doc.get().getRoomId());
         page.setRoomName(doc.get().getRoomName());
-        page.setUserNames(doc.get().getUserNames());
-        page.setCreatedBy(doc.get().getCreatedBy());
+        page.setParticipants(doc.get().getParticipants());
+        page.setMadeBy(doc.get().getMadeBy());
+        page.setCreatedAt(doc.get().getCreatedAt());
+        page.setMode(doc.get().getMode());
         page.setObjects(doc.get().getObjects());
+
         return Optional.of(page);
     }
 
-    public boolean deletePageByRoomId(String roomId, String userName) {
-        Optional<PageDocument> pageOpt = boardRepository.findByRoomIdAndUserNamesContaining(roomId, userName);
+    public boolean deletePageByRoomId(String roomId, int userId) {
+        Optional<PageDocument> pageOpt = boardRepository.findByRoomIdAndParticipants_Id(roomId, userId);
 
         //방장만 삭제할 수 있도록 하고싶은 경우
 //        if (!pageOpt.get().getCreatedBy().equals(userName)) {
@@ -120,7 +129,7 @@ public class BoardService {
             }
         }
 
-        boardRepository.deleteByRoomIdAndUserNamesContaining(roomId, userName);
+        boardRepository.deleteByRoomIdAndParticipants_Id(roomId, userId);
         return true;
     }
 }
