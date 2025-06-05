@@ -81,7 +81,7 @@ public class BoardService {
     public List<Dashboard> getBoardsByUser(int userId) {
         List<PageDocument> pages = boardRepository.findByParticipants_Id(userId);
         return pages.stream()
-                .map(p -> new Dashboard(p.getRoomId(), p.getRoomName(), p.getParticipants()))
+                .map(p -> new Dashboard(p.getRoomId(), p.getRoomName(), p.getCreatedAt(),p.getParticipants()))
                 .collect(Collectors.toList());
     }
 

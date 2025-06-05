@@ -12,5 +12,6 @@ import java.util.List;
 public class Dashboard {
     private String roomId;
     private String roomName;
+    private String createdAt;
     private List<Participant> userNames;
 }
