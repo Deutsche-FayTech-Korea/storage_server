@@ -9,11 +9,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/board/s3/**")  // 해당 경로에 대해서만 CORS 허용
-                .allowedOrigins("*")
+                .allowedOrigins("http://localhost:3000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .exposedHeaders("Content-Length", "Content-Range")
-                .allowCredentials(false)
+                .allowCredentials(true)
                 .maxAge(3600);
     }
 } 
