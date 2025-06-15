@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class Point {
-    private int x;
-    private int y;
+    private String userName;
+    private double x;
+    private double y;
 }
